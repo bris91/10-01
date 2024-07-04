@@ -30,6 +30,13 @@
 Для проверки корректности настройки, разорвите один из кабелей между одним из маршрутизаторов и Switch0 и запустите ping между PC0 и Server0.
 На проверку отправьте получившуюся схему в формате pkt и скриншот, где виден процесс настройки маршрутизатора.
 
+![alt text](https://github.com/bris91/10-01/blob/1f953a527852672fa38d2a9a40102a96a02e4ef2/2024-06-25_21-58-42.png)
+
+![alt text](https://github.com/bris91/10-01/blob/1f953a527852672fa38d2a9a40102a96a02e4ef2/2024-06-25_22-00-18.png)
+
+![alt text](https://github.com/bris91/10-01/blob/1f953a527852672fa38d2a9a40102a96a02e4ef2/2024-06-25_22-05-22.png)
+
+
 ### Задание 2
 
 Запустите две виртуальные машины Linux, установите и настройте сервис Keepalived как в лекции, используя пример конфигурационного файла.
@@ -38,22 +45,73 @@
 Настройте Keepalived так, чтобы он запускал данный скрипт каждые 3 секунды и переносил виртуальный IP на другой сервер, если bash-скрипт завершался с кодом, отличным от нуля (то есть порт веб-сервера был недоступен или отсутствовал index.html). Используйте для этого секцию vrrp_script
 На проверку отправьте получившейся bash-скрипт и конфигурационный файл keepalived, а также скриншот с демонстрацией переезда плавающего ip на другой сервер в случае недоступности порта или файла index.html
 
-....
-....
-....
-....
-``
+#!/bin/bash
+HOST="127.0.0.1"
+PORT="80"
+FILE=/var/www/html/index.nginx-debian.html
+
+exec 3> /dev/tcp/${HOST}/${PORT}
+if [ $? -eq 0 ] && [ -f "$FILE" ] ; then exit 0 ; else exit 1 ; fi
+
+
+
+global_defs {
+    script_user root
+    enable_script_security
+}
+
+vrrp_script check {
+    script "/etc/keepalived/check.sh"
+    interval 3
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface enp0s8
+    virtual_router_id 15
+    priority 100
+    advert_int 1
+
+    virtual_ipaddress {
+            192.168.0.15/24
+        }
+
+        track_script {
+           check
+        }
+}
+
+global_defs {
+    script_user root
+    enable_script_security
+}
+
+vrrp_script check {
+    script "/etc/keepalived/check.sh"
+    interval 3
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface enp0s8
+    virtual_router_id 15
+    priority 90
+    advert_int 1
+
+    virtual_ipaddress {
+            192.168.0.15/24
+        }
+
+        track_script {
+           check
+        }
+}
 
 `При необходимости прикрепитe сюда скриншоты
 ![Название скриншота 2](ссылка на скриншот 2)`
 
+![alt text](https://github.com/bris91/10-01/blob/1f953a527852672fa38d2a9a40102a96a02e4ef2/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%20%D0%BE%D1%82%202024-06-30%2019-38-01.png)
 
----
+![alt text](https://github.com/bris91/10-01/blob/1f953a527852672fa38d2a9a40102a96a02e4ef2/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%20%D0%BE%D1%82%202024-06-30%2019-38-16.png)
 
-Задание 2-3
-
-![alt text](https://github.com/bris91/9-02/blob/bdec438f715c438efc19a37fda8ca2e21b1e2b26/img/Screenshot%20from%202024-06-16%2017-16-45.png)
-
-![alt text](https://github.com/bris91/9-02/blob/bdec438f715c438efc19a37fda8ca2e21b1e2b26/img/Screenshot%20from%202024-06-16%2017-17-02.png)
-
-![alt text](https://github.com/bris91/9-02/blob/bdec438f715c438efc19a37fda8ca2e21b1e2b26/img/Screenshot%20from%202024-06-16%2017-17-22.png)
+![alt text](https://github.com/bris91/10-01/blob/1f953a527852672fa38d2a9a40102a96a02e4ef2/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%20%D0%BE%D1%82%202024-06-30%2019-38-46.png)
