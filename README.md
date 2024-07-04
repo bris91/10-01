@@ -53,50 +53,60 @@ exec 3> /dev/tcp/${HOST}/${PORT}
 if [ $? -eq 0 ] && [ -f "$FILE" ] ; then exit 0 ; else exit 1 ; fi
 
 
-
 global_defs {
     script_user root
     enable_script_security
 }
+
 vrrp_script check {
     script "/etc/keepalived/check.sh"
     interval 3
 }
+
 vrrp_instance VI_1 {
     state MASTER
     interface enp0s8
     virtual_router_id 15
     priority 100
     advert_int 1
+
     virtual_ipaddress {
             192.168.0.15/24
         }
+
         track_script {
            check
         }
 }
 
+
+
 global_defs {
     script_user root
     enable_script_security
 }
+
 vrrp_script check {
     script "/etc/keepalived/check.sh"
     interval 3
 }
+
 vrrp_instance VI_1 {
     state BACKUP
     interface enp0s8
     virtual_router_id 15
     priority 90
     advert_int 1
+
     virtual_ipaddress {
             192.168.0.15/24
         }
+
         track_script {
            check
         }
 }
+
 
 `При необходимости прикрепитe сюда скриншоты
 ![Название скриншота 2](ссылка на скриншот 2)`
